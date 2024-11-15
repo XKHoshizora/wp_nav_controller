@@ -1,0 +1,32 @@
+<launch>
+    <!-- 参数配置 -->
+    <arg name="use_rviz" default="true"/>
+    <arg name="update_rate" default="10.0"/>
+    <arg name="goal_tolerance" default="0.5"/>
+    <arg name="timeout" default="300.0"/>
+    <arg name="service_prefix" default="waypoint"/>
+
+    <!-- 可选的航点文件加载 -->
+    <arg name="waypoints_file" default="$(env HOME)/waypoints.xml"/>
+
+    <!-- 启动航点管理器节点 -->
+    <node pkg="amr_map_tools" type="wp_waypoint_manager" name="wp_waypoint_manager" output="screen">
+        <param name="load" value="$(arg waypoints_file)"/>
+    </node>
+
+    <!-- 等待航点服务可用后启动导航控制器节点 -->
+    <node pkg="wp_nav_controller" type="wp_nav_controller_node" name="wp_nav_controller"
+          output="screen" launch-prefix="bash -c 'sleep 2; $0 $@' ">
+        <param name="update_rate" value="$(arg update_rate)"/>
+        <param name="goal_tolerance" value="$(arg goal_tolerance)"/>
+        <param name="timeout" value="$(arg timeout)"/>
+        <param name="service_prefix" value="$(arg service_prefix)"/>
+    </node>
+
+    <!-- 启动RViz（可选） -->
+    <node pkg="rviz" type="rviz" name="rviz"
+          args="-d $(find wp_nav_controller)/rviz/wp_nav.rviz"
+          if="$(arg use_rviz)">
+        <remap from="move_base_simple/goal" to="wp_nav/custom_goal"/>
+    </node>
+</launch>

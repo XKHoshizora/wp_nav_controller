@@ -60,14 +60,14 @@ wp_nav_controller 是一个用于机器人航点导航的 ROS 功能包，提供
 
 ```
 wp_nav_controller/
+├── CMakeLists.txt
+├── package.xml
 ├── msg/                        # 消息定义
 │   └── NavigationCommand.msg   # 导航命令消息定义
 ├── include/wp_nav_controller/  # 头文件
 │   ├── waypoint_navigator.h    # 导航器核心类定义
-│   └── navigation_status.h     # 状态管理定义
 ├── src/                        # 源代码实现
 │   ├── waypoint_navigator.cpp  # 导航器核心实现
-│   ├── navigation_status.cpp   # 状态管理实现
 │   └── wp_nav_controller_node.cpp  # ROS节点实现
 ├── launch/                     # 启动文件
 │   └── wp_nav_controller.launch

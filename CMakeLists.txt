@@ -45,11 +45,12 @@ include_directories(
 # 核心库
 add_library(waypoint_navigator
   src/waypoint_navigator.cpp
-  src/navigation_status.cpp
 )
+
 target_link_libraries(waypoint_navigator
   ${catkin_LIBRARIES}
 )
+
 add_dependencies(waypoint_navigator
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}

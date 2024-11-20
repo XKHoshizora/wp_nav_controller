@@ -2,29 +2,29 @@
 <package format="2">
   <name>wp_nav_controller</name>
   <version>0.1.0</version>
-  <description>A waypoint navigation controller package for AMR</description>
-  <maintainer email="your_email@example.com">Your Name</maintainer>
-  <license>BSD</license>
+  <description>Waypoint navigation controller package</description>
+  <maintainer email="user@todo.todo">user</maintainer>
+  <license>TODO</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-
-  <build_depend>roscpp</build_depend>
-  <build_depend>actionlib</build_depend>
-  <build_depend>move_base_msgs</build_depend>
+  <build_depend>rospy</build_depend>
   <build_depend>geometry_msgs</build_depend>
-  <build_depend>tf</build_depend>
-  <build_depend>amr_map_tools</build_depend>
-  <build_depend>message_generation</build_depend>
+  <build_depend>actionlib_msgs</build_depend>
+  <build_depend>move_base_msgs</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>amr_map_tools</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_depend>tf2_ros</build_depend>
+  <build_depend>tf2_geometry_msgs</build_depend>
+  <build_depend>message_generation</build_depend>
 
-  <exec_depend>roscpp</exec_depend>
-  <exec_depend>actionlib</exec_depend>
-  <exec_depend>move_base_msgs</exec_depend>
+  <exec_depend>rospy</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>tf</exec_depend>
+  <exec_depend>actionlib_msgs</exec_depend>
+  <exec_depend>move_base_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>tf2_geometry_msgs</exec_depend>
   <exec_depend>amr_map_tools</exec_depend>
   <exec_depend>message_runtime</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
-  <exec_depend>amr_map_tools</exec_depend>
 </package>

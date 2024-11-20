@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+
+import wp_nav_controller.wp_nav_controller as node
+
+if __name__ == '__main__':
+    node.main()

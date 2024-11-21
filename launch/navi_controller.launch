@@ -1,0 +1,6 @@
+<launch>
+
+    <!-- 导航控制器 GUI -->
+    <node pkg="wp_nav_controller" type="navigation_ui_node" name="navigation_controller" output="screen"/>
+
+</launch>

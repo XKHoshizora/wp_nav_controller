@@ -36,7 +36,7 @@ class WPNavControllerNode:
                                        SequenceCommand,
                                        self.handle_sequence_command)
 
-        rospy.loginfo("WP Nav Controller services are ready")
+        rospy.loginfo("Waypoint Navigation Controller services are ready")
 
         # 初始化参数解析器
         self.parser = self._setup_argument_parser()

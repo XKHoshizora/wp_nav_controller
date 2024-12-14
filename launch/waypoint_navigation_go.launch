@@ -1,0 +1,8 @@
+<launch>
+
+    <!-- 执行多航点导航任务 -->
+    <!-- <node pkg="waterplus_map_tools" type="wp_nav_test" name="amr_waypoint_go" output="screen"/> -->
+    <!-- <node pkg="amr_waypoint_tools" type="waypoint_navi_test" name="amr_waypoint_go" output="screen"/> -->
+    <node pkg="amr_waypoint_tools" type="waypoint_navi_go.py" name="waypoint_navi_go" output="screen"/>
+
+</launch>

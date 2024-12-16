@@ -4,7 +4,7 @@
 import rospy
 from amr_waypoint_tools.srv import GetNumOfWaypoints
 from amr_waypoint_tools.srv import GetWaypointByIndex
-from wp_nav_controller.msg import NavigationCommand, SequenceCommand
+from wp_nav_controller.srv import NavigationCommand, SequenceCommand
 
 
 class WaypointNavigationGo:

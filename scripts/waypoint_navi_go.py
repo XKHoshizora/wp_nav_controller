@@ -99,3 +99,32 @@ class WaypointNavigationGo:
         except rospy.ServiceException as e:
             rospy.logerr(f"Service call failed: {e}")
             return False, str(e)
+
+
+if __name__ == '__main__':
+    try:
+        # 创建导航对象
+        navigator = WaypointNavigationGo()
+
+        # 创建序列
+        success, message = navigator.create_sequence()
+        if success:
+            rospy.loginfo("Sequence created successfully")
+
+            # 启动导航
+            success, message = navigator.start_sequence(
+                mode='roundtrip',  # 使用往返模式
+                loop=True,         # 启用循环
+                reverse=False      # 正向开始
+            )
+
+            if success:
+                rospy.loginfo("Navigation started successfully")
+                rospy.spin()  # 保持节点运行
+            else:
+                rospy.logerr(f"Failed to start navigation: {message}")
+        else:
+            rospy.logerr(f"Failed to create sequence: {message}")
+
+    except rospy.ROSInterruptException:
+        pass

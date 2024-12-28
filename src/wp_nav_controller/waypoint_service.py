@@ -4,7 +4,7 @@
 import rospy
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose
-from waterplus_map_tools.srv import *
+from amr_waypoint_tools.srv import *
 
 
 class WaypointException(Exception):

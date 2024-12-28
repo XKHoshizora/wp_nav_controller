@@ -336,7 +336,10 @@ class NavigationControl:
                 # 保存当前导航目标
                 self._paused_goal = self._current_goal
 
-                # 获取并保存当前位置
+                # 取消当前导航目标
+                self._move_base.cancel_goal()
+
+                # 停止后，获取并保存当前位置
                 current_pose = self._get_current_robot_pose()
                 if current_pose:
                     self._paused_position = current_pose
@@ -346,8 +349,7 @@ class NavigationControl:
                     rospy.logwarn("Could not get current robot position")
                     self._paused_position = None
 
-                # 取消当前导航目标
-                self._move_base.cancel_goal()
+                # 更新状态为 PAUSED
                 self._update_state(NavigationState.PAUSED)
 
                 rospy.loginfo("Navigation paused - Goal and position saved")

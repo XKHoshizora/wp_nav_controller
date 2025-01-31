@@ -44,7 +44,7 @@ class NavigationPoint:
             name (str, optional): 航点名称
             index (int, optional): 航点索引
         """
-        self._sequence_lock = threading.Lock()  # 确保所有状态修改都通过此锁 （New add 2025-1-31）
+        self._sequence_lock = threading.Lock()  # 确保所有状态修改都通过此锁 （New add 2025-01-31）
         self.pose = pose
         self.name = name
         self.index = index
@@ -477,7 +477,7 @@ class NavigationSequence:
         Returns:
             bool: 是否成功暂停
         """
-        with self._sequence_lock:  # 添加锁保护状态检查（New add 2025-1-31）
+        with self._sequence_lock:  # 添加锁保护状态检查（New add 2025-01-31）
             if not self._is_running:
                 rospy.logwarn("Cannot pause: sequence not running")
                 return False

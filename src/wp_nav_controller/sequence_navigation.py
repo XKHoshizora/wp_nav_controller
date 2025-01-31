@@ -44,6 +44,7 @@ class NavigationPoint:
             name (str, optional): 航点名称
             index (int, optional): 航点索引
         """
+        self._sequence_lock = threading.Lock()  # 确保所有状态修改都通过此锁 （New add 2025-1-31）
         self.pose = pose
         self.name = name
         self.index = index
@@ -385,65 +386,66 @@ class NavigationSequence:
         Returns:
             bool: 是否成功启动序列导航
         """
-        if self._is_running:
-            rospy.logwarn("Navigation sequence is already running")
-            return False
+        with self._sequence_lock:  # 确保线程安全 （New add 2025-01-31）
+            if self._is_running:
+                rospy.logwarn("Navigation sequence is already running")
+                return False
 
-        if not self._sequence:
-            rospy.logerr("Navigation sequence is empty")
-            return False
+            if not self._sequence:
+                rospy.logerr("Navigation sequence is empty")
+                return False
 
-        try:
-            # 设置起始索引
-            if start_point is not None:
-                start_index = self._find_start_index(start_point)
-                if start_index is None:
-                    return False
-                self._current_index = start_index
-            else:
-                self._current_index = len(self._sequence) - 1 if reverse else 0
+            try:
+                # 设置起始索引
+                if start_point is not None:
+                    start_index = self._find_start_index(start_point)
+                    if start_index is None:
+                        return False
+                    self._current_index = start_index
+                else:
+                    self._current_index = len(self._sequence) - 1 if reverse else 0
 
-            self._mode = mode
-            self._is_loop = is_loop or mode == SequenceMode.LOOP
-            self._is_roundtrip = is_roundtrip or mode == SequenceMode.ROUNDTRIP
-            self._is_running = True
-            self._is_paused = False
-            self._reverse_direction = reverse
-            self._reverse_enabled = reverse
+                self._mode = mode
+                self._is_loop = is_loop or mode == SequenceMode.LOOP
+                self._is_roundtrip = is_roundtrip or mode == SequenceMode.ROUNDTRIP
+                self._is_running = True
+                self._is_paused = False
+                self._reverse_direction = reverse
+                self._reverse_enabled = reverse
 
-            self._roundtrip_count = 0  # 重置完整往返计数
+                self._roundtrip_count = 0  # 重置完整往返计数
 
-            # 如果是反向启动，翻转序列
-            if reverse:
-                with self._sequence_lock:
-                    self._sequence.reverse()
-                    # 更新起始索引位置
-                    if start_point is not None:
-                        self._current_index = len(self._sequence) - 1 - self._current_index
+                # 如果是反向启动，翻转序列
+                if reverse:
+                    with self._sequence_lock:
+                        self._sequence.reverse()
+                        # 更新起始索引位置
+                        if start_point is not None:
+                            self._current_index = len(self._sequence) - 1 - self._current_index
 
-            # 启动序列导航线程
-            self._sequence_thread = threading.Thread(
-                target=self._sequence_execution_thread
-            )
-            self._sequence_thread.start()
+                # 启动序列导航线程
+                self._sequence_thread = threading.Thread(
+                    target=self._sequence_execution_thread
+                )
+                self._sequence_thread.start()
 
-            mode_str = f"{mode}"
-            config_str = []
-            if is_loop:
-                config_str.append("looped")
-            if reverse:
-                config_str.append("reverse")
-            if start_point is not None:
-                config_str.append(f"start from {start_point}")
+                mode_str = f"{mode}"
+                config_str = []
+                if is_loop:
+                    config_str.append("looped")
+                if reverse:
+                    config_str.append("reverse")
+                if start_point is not None:
+                    config_str.append(f"start from {start_point}")
 
-            status_str = f" ({', '.join(config_str)})" if config_str else ""
-            rospy.loginfo(f"Started {mode_str} navigation{status_str}")
-            return True
+                status_str = f" ({', '.join(config_str)})" if config_str else ""
+                rospy.loginfo(f"Started {mode_str} navigation{status_str}")
+                return True
 
-        except Exception as e:
-            rospy.logerr(f"Failed to start sequence: {e}")
-            self._is_running = False
-            return False
+            except Exception as e:
+                rospy.logerr(f"Failed to start sequence: {e}")
+                self._is_running = False
+                return False
 
     def _find_start_index(self, start_point) -> Optional[int]:
         """查找起始点在序列中的索引
@@ -475,49 +477,50 @@ class NavigationSequence:
         Returns:
             bool: 是否成功暂停
         """
-        if not self._is_running:
-            rospy.logwarn("Cannot pause: sequence not running")
-            return False
-        if self._is_paused:
-            rospy.logwarn("Cannot pause: already paused")
-            return False
-
-        try:
-            # 暂停当前导航
-            if not self._navigator.pause_navigation():
+        with self._sequence_lock:  # 添加锁保护状态检查（New add 2025-1-31）
+            if not self._is_running:
+                rospy.logwarn("Cannot pause: sequence not running")
+                return False
+            if self._is_paused:
+                rospy.logwarn("Cannot pause: already paused")
                 return False
 
-            # 保存恢复导航必需的状态
-            pause_state = self.PauseState()
+            try:
+                # 暂停当前导航
+                if not self._navigator.pause_navigation():
+                    return False
 
-            with self._sequence_lock:
-                # 保存序列配置、索引和目标
-                pause_state.sequence = self._sequence.copy()
-                pause_state.current_index = self._current_index
-                pause_state.current_goal = self._sequence[self._current_index]
+                # 保存恢复导航必需的状态
+                pause_state = self.PauseState()
 
-                # 保存导航模式
-                pause_state.mode = self._mode
-                pause_state.is_loop = self._is_loop
-                pause_state.is_roundtrip = self._is_roundtrip
-                pause_state.is_reverse = self._reverse_direction
+                with self._sequence_lock:
+                    # 保存序列配置、索引和目标
+                    pause_state.sequence = self._sequence.copy()
+                    pause_state.current_index = self._current_index
+                    pause_state.current_goal = self._sequence[self._current_index]
 
-                # 保存往返计数
-                pause_state.roundtrip_count = self._roundtrip_count
+                    # 保存导航模式
+                    pause_state.mode = self._mode
+                    pause_state.is_loop = self._is_loop
+                    pause_state.is_roundtrip = self._is_roundtrip
+                    pause_state.is_reverse = self._reverse_direction
 
-                self._paused_state = pause_state
-                self._is_paused = True
+                    # 保存往返计数
+                    pause_state.roundtrip_count = self._roundtrip_count
 
-            rospy.loginfo(
-                f"Sequence paused at index {self._current_index}, "
-                f"target: {pause_state.current_goal},"
-                f"roundtrip count: {pause_state.roundtrip_count}"
-            )
-            return True
+                    self._paused_state = pause_state
+                    self._is_paused = True
 
-        except Exception as e:
-            rospy.logerr(f"Failed to pause sequence: {e}")
-            return False
+                rospy.loginfo(
+                    f"Sequence paused at index {self._current_index}, "
+                    f"target: {pause_state.current_goal},"
+                    f"roundtrip count: {pause_state.roundtrip_count}"
+                )
+                return True
+
+            except Exception as e:
+                rospy.logerr(f"Failed to pause sequence: {e}")
+                return False
 
     def get_pause_state(self) -> dict:
         """获取暂停状态信息"""

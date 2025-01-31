@@ -105,6 +105,9 @@ class NavigationControl:
         """
         with self._state_lock:
             old_state = self._state
+            if new_state == old_state:
+                rospy.logdebug(f"Ignoring redundant state change to {new_state}")
+                return
             self._state = new_state
 
             # 状态转换信息

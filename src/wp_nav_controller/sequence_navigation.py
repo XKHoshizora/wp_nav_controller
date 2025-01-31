@@ -475,8 +475,11 @@ class NavigationSequence:
         Returns:
             bool: 是否成功暂停
         """
-        if not self._is_running or self._is_paused:
-            rospy.logwarn("Cannot pause: sequence not running or already paused")
+        if not self._is_running:
+            rospy.logwarn("Cannot pause: sequence not running")
+            return False
+        if self._is_paused:
+            rospy.logwarn("Cannot pause: already paused")
             return False
 
         try:
@@ -771,13 +774,39 @@ class NavigationSequence:
 
     def _cleanup_sequence(self):
         """清理序列状态"""
-        # 如果是反向模式且不是暂停状态，恢复序列原始顺序
-        if self._reverse_enabled and not self._is_paused:
-            with self._sequence_lock:
-                self._sequence.reverse()
+        # Old Code
+        # # 如果是反向模式且不是暂停状态，恢复序列原始顺序
+        # if self._reverse_enabled and not self._is_paused:
+        #     with self._sequence_lock:
+        #         self._sequence.reverse()
 
-        # 仅在非暂停状态下重置状态
-        if not self._is_paused:
-            self._current_index = 0
-            self._reverse_direction = False
-            self._reverse_enabled = False
+        # # 仅在非暂停状态下重置状态
+        # if not self._is_paused:
+        #     self._current_index = 0
+        #     self._reverse_direction = False
+        #     self._reverse_enabled = False
+
+        # New Code
+        try:
+            # 如果序列还在运行，先停止它
+            if self._is_running:
+                self.stop_sequence()
+
+            # 等待导航线程完成
+            if self._sequence_thread and self._sequence_thread.is_alive():
+                self._sequence_thread.join(timeout=1.0)
+
+            # 如果是反向模式且不是暂停状态，恢复序列原始顺序
+            if self._reverse_enabled and not self._is_paused:
+                with self._sequence_lock:
+                    self._sequence.reverse()
+
+            # 重置所有状态（仅在非暂停状态下）
+            if not self._is_paused:
+                self._current_index = 0
+                self._reverse_direction = False
+                self._reverse_enabled = False
+                self._is_running = False
+
+        except Exception as e:
+            rospy.logerr(f"Error during sequence cleanup: {e}")
